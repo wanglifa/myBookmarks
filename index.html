@@ -8,80 +8,139 @@
 <body>
 	<header></header>
 	<main>
-		
 	</main>
 	<footer></footer>
 	<script>
-		var keys = {
-			'0':{'0':'q','1':'w','2':'e','3':'r','4':'t','5':'y','6':'u','7':'i','8':'o','9':'p','length':10},
-			'1':{'0':'a','1':'s','2':'d','3':'f','4':'g','5':'h','6':'j','7':'k','8':'l','length':9},
-			'2':{'0':'z','1':'x','2':'c','3':'v','4':'b','5':'n','6':'m','length':7},
-			'length':3
-		}
-		var hash = {
-			'q':'qq.com',
-			'w':'wanglifa1995.com',
-			'e':'ele.me',
-			'r':'renren.com',
-			't':'twitter.com',
-			'y':'youtube.com',
-			'u':'uc.com',
-			'i':'iqiyi.com',
-			'o':'opera.com',
-			'p':'91porn.com',
-			'a':'acfun.tv',
-			's':'sohu.com',
-			'z':'zhihu.com',
-			'm':'www.mcdonalds.com.cn'
-		}
-		haslocal = JSON.parse(localStorage.getItem('zzz') || 'null');
-		if(haslocal){
-			hash = haslocal;
-		}
+		//创建父级元素标签
 		var main_wrpper = document.createElement('div');
 		main_wrpper.setAttribute("id","mian");
 		var main = document.getElementsByTagName('main')[0];
 		main.appendChild(main_wrpper);
 
+		//初始化数据	
+		var hashA = init();
+		var keys = hashA['key'];
+		var hash = hashA['hash'];
+		
+		//2.生成键盘
 		//遍历keys，生成kbd标签
-		var index = 0;
-		while(index < keys['length']){
-			var div1 = document.createElement('div');
-			main_wrpper.appendChild(div1);
-			var index2 =0;
-			var row = keys[index];
-			while(index2 < row['length']){
-				var kbd = document.createElement('kbd');
-				kbd.textContent = row[index2];
-				var button = document.createElement('button');
-				kbd.appendChild(button);
-				button.id = row[index2];
-				button.onclick = function(event){
-					key = event['target']['id'];
-					x = prompt('请输入网址');
-					if(x != ''){
-						hash[key] = x;//hash变更
-						localStorage.setItem('zzz',JSON.stringify(hash));
-					}else{
-						hash[key] = 'undefined'
-					}
-					
-					console.log(hash);
-					
-				}
-				button.textContent = '编辑';
-				div1.appendChild(kbd);
-				index2+=1;
+		
+		generateKeyboard(keys,hash);
+		
+
+		//3.监听用户
+		listenToUser();
+		
+
+		function init(){
+			var keys = {
+			'0':{'0':'q','1':'w','2':'e','3':'r','4':'t','5':'y','6':'u','7':'i','8':'o','9':'p','length':10},
+			'1':{'0':'a','1':'s','2':'d','3':'f','4':'g','5':'h','6':'j','7':'k','8':'l','length':9},
+			'2':{'0':'z','1':'x','2':'c','3':'v','4':'b','5':'n','6':'m','length':7},
+			'length':3
 			}
-			
-			index+=1;
+			var hash = {
+				'q':'qq.com',
+				'w':'wanglifa1995.com',
+				'e':'ele.me',
+				'r':'renren.com',
+				't':'twitter.com',
+				'y':'youtube.com',
+				'u':'uc.com',
+				'i':'iqiyi.com',
+				'o':'opera.com',
+				'p':'91porn.com',
+				'a':'acfun.tv',
+				's':'sohu.com',
+				'z':'zhihu.com',
+				'm':'www.mcdonalds.com.cn'
+			}
+			var haslocal = getFromLocalStorage('zzz')
+			// console.log(typeof haslocal);
+			if(haslocal){
+				hash = haslocal;
+			}
+			return {
+				'key':keys,
+				'hash':hash
+			}
 		}
 
-		//键盘按下监听事件
-		document.onkeypress = function(event){
-			var key = event['key'];
-			var website = hash[key];
-			window.open('http://'+website,'_blank');
+		function generateKeyboard(keys,hash){
+			for(var index=0;index < keys['length'];index++){
+				var div1 = tag('div',{className: 'row'});
+	
+				main_wrpper.appendChild(div1);
+				
+				var row = keys[index];
+				for(var index2 =0;index2 < row['length'];index2	++){
+					var button = createButton(row[index2]);
+	
+					var imgs = createImg(hash[row[index2]]);
+					
+					var kbd = tag('kbd');
+					kbd.className = 'key';
+					kbd.textContent = row[index2];
+					kbd.appendChild(imgs);
+					kbd.appendChild(button);
+	
+					div1.appendChild(kbd);
+	
+				}
+			}
+		}
+
+		function getFromLocalStorage(name){
+			return JSON.parse(localStorage.getItem(name) || 'null');
+		}
+
+		function tag(tagName,attribute){
+			var element= document.createElement(tagName);
+			for(var key in attribute){
+				element[key] = attribute[key];
+				//调用：var div1 = tag('div',{className: 'row'})，key就是className;
+				//这句话就相当于div1.className = 'row';
+			}
+			return element;
+		}
+
+		function createButton(id){
+			var button = tag('button');
+			button.id = id;
+			button.onclick = function(event){
+				img_change = event['target'];
+				var x = prompt('请输入网址');
+				var key = img_change['id'];
+				img_change.previousSibling.src = 'http://'+x+'/favicon.ico';
+				hash[key] = x;//hash变更
+				localStorage.setItem('zzz',JSON.stringify(hash));
+				
+				console.log(hash);
+				
+			}
+			button.textContent = '编辑';
+			return button;
+		}
+
+		function createImg(domain){
+			var imgs= tag('img');
+				if(domain){
+					imgs.src = 'http://'+domain +'/favicon.ico'
+				}else{
+					imgs.src = './dian.png';
+				}
+				imgs.onerror = function(event){
+					event.target.src = './dian.png'
+				}
+				return imgs;
+		}
+
+		function listenToUser(){
+			document.onkeypress = function(event){
+				var key = event['key'];
+				var website = hash[key];
+				window.open('http://'+website,'_blank');
+			}
 		}
 	</script>
 </body>
